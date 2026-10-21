@@ -13,17 +13,17 @@ const PORT = 3000
 // ROTA LOGIN - CRIA USUARIO
 
 app.post('/registro', async (req, res) => {
-    const {login, senha} = req.body
+    const {nome, login, senha} = req.body
     try{
-        if(!login || !senha){
+        if(!nome || !login || !senha){
             return res.status(400). json({
-                erro: "Login e senha são obrigatórios!"
+                erro: "Nome, login e senha são obrigatórios!"
             })
         }
 
         const salt = await bcrypt.genSalt(10)
         const senhaHashed = await bcrypt.hash(senha, salt)
-        const resultado = await pool.query('INSERT INTO usuario (login, senha) VALUES ($1, $2) RETURNING id, login', [login, senhaHashed])
+        const resultado = await pool.query('INSERT INTO usuario (nome, login, senha) VALUES ($1, $2, $3) RETURNING id, nome, login', [nome, login, senhaHashed])
 
         res.json(resultado.rows[0])
     }catch(erro){
