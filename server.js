@@ -1,6 +1,7 @@
 import express from 'express'
 import pool from './db.js'
 import cors from 'cors'
+import bcrypt, { hash } from 'bcryptjs'
 
 const app = express()
 app.use(express.json())
@@ -8,17 +9,56 @@ app.use(cors())
 
 const PORT = 3000
 
-// ROTA LOGIN
+
+// ROTA LOGIN - CRIA USUARIO
+
+app.post('/registro', async (req, res) => {
+    const {login, senha} = req.body
+    try{
+        if(!login || !senha){
+            return res.status(400). json({
+                erro: "Login e senha são obrigatórios!"
+            })
+        }
+
+        const salt = await bcrypt.genSalt(10)
+        const senhaHashed = await bcrypt.hash(senha, salt)
+        const resultado = await pool.query('INSERT INTO usuario (login, senha) VALUES ($1, $2) RETURNING id, login', [login, senhaHashed])
+
+        res.json(resultado.rows[0])
+    }catch(erro){
+        res.json({message: "erro"})
+    }
+})
+
 
 app.post('/login', async (req, res) => {
     const {login, senha} = req.body
-    const resultado = await pool.query('SELECT nome FROM usuario WHERE login = $1 AND senha = $2', [login, senha])
-    
+    const resultado = await pool.query('SELECT * FROM usuario WHERE login = $1', [login])
+
     if(resultado.rows.length === 0){
-        return res.status(401).json({erro: 'Login ou senha inválidos!'})
+        return res.status(401).json({
+            erro: "Login e senha inválidos."
+        })
     }
 
-    res.json(resultado.rows[0])
+    const usuario = resultado.rows[0]
+
+    const senhaCerta = await bcrypt.compare(senha, usuario.senha)
+
+    if(!senhaCerta){
+        return res.status(401).json({
+            erro: "Login e senha inválidos."
+        })
+    }
+
+    return res.status(200).json({
+        messagem: "Login realizado com sucesso.",
+        usuario: {
+            id: usuario.id,
+            login: usuario.login
+        }
+    })
 })
 
 // ROTAS CLIENTES
@@ -30,20 +70,27 @@ app.get('/cliente', async (req, res) => {
 
 app.post('/cliente', async (req, res) => {
     const {nome, cpf, telefone} = req.body
-    const novoCliente = await pool.query('INSERT INTO cliente (nome, cpf, telefone) VALUES ($1, $2, $3)', [nome, cpf, telefone])
+
+    const novoCliente = await pool.query('INSERT INTO cliente (nome, cpf, telefone) VALUES ($1, $2, $3) RETURNING *', [nome, cpf, telefone])
+
     res.json(novoCliente.rows[0])
 })
 
 app.put('/cliente/:id', async (req, res) => {
     const {id} = req.params
+
     const {nome, cpf, telefone} = req.body
-    const attCliente = await pool.query('UPDATE cliente SET nome = $1, cpf = $2, telefone = $3 WHERE id = $4', [nome, cpf, telefone, id])
+
+    const attCliente = await pool.query('UPDATE cliente SET nome = $1, cpf = $2, telefone = $3 WHERE id = $4 RETURNING *', [nome, cpf, telefone, id])
+
     res.json(attCliente.rows[0])
 })
 
 app.delete('/cliente/:id', async (req, res) => {
     const {id} = req.params
-    const deletarCliente = await pool.query('DELETE FROM cliente WHERE id = $1', [id])
+
+    const deletarCliente = await pool.query('DELETE FROM cliente WHERE id = $1 RETURNING *', [id])
+
     res.json(deletarCliente.rows[0])
 })
 
@@ -62,25 +109,33 @@ app.get('/veiculo', async (req, res) => {
         JOIN cliente ON cliente.id = veiculo.id_cliente
         ORDER BY veiculo.id
     `)
+
     res.json(resultado.rows)
 })
 
 app.post('/veiculo', async (req, res) => {
     const {placa, modelo, ano, id_cliente} = req.body
-    const novoRegistro = await pool.query('INSERT INTO veiculo (placa, modelo, ano, id_cliente) VALUES ($1, $2, $3, $4)', [placa, modelo, ano, id_cliente])
+
+    const novoRegistro = await pool.query('INSERT INTO veiculo (placa, modelo, ano, id_cliente) VALUES ($1, $2, $3, $4) RETURNING *', [placa, modelo, ano, id_cliente])
+
     res.json(novoRegistro.rows[0])
 })
 
 app.put('/veiculo/:id', async (req, res) => {
     const {id} = req.params
+
     const {placa, modelo, ano, id_cliente} = req.body
-    const attRegistro = await pool.query('UPDATE veiculo SET placa = $1, modelo = $2, ano = $3, id_cliente = $4 WHERE id = $5', [placa, modelo, ano, id_cliente, id])
+
+    const attRegistro = await pool.query('UPDATE veiculo SET placa = $1, modelo = $2, ano = $3, id_cliente = $4 WHERE id = $5 RETURNING *', [placa, modelo, ano, id_cliente, id])
+
     res.json(attRegistro.rows[0])
 })
 
 app.delete('/veiculo/:id', async (req, res) => {
     const {id} = req.params
-    const deletarRegistro = await pool.query('DELETE FROM veiculo WHERE id = $1', [id])
+
+    const deletarRegistro = await pool.query('DELETE FROM veiculo WHERE id = $1 RETURNING *', [id])
+
     res.json(deletarRegistro.rows[0])
 })
 
@@ -102,25 +157,33 @@ app.get('/agendamento', async (req, res) => {
         JOIN cliente ON cliente.id = agendamento.id_cliente
         ORDER BY agendamento.data_agendamento
     `)
+
     res.json(resultado.rows)
 })
 
 app.post('/agendamento', async (req, res) => {
     const {data_agendamento, servico, id_veiculo, id_cliente} = req.body
-    const novoAgendamento = await pool.query('INSERT INTO agendamento (data_agendamento, servico, id_veiculo, id_cliente) VALUES ($1, $2, $3, $4)', [data_agendamento, servico, id_veiculo, id_cliente])
+
+    const novoAgendamento = await pool.query('INSERT INTO agendamento (data_agendamento, servico, id_veiculo, id_cliente) VALUES ($1, $2, $3, $4) RETURNING *', [data_agendamento, servico, id_veiculo, id_cliente])
+
     res.json(novoAgendamento.rows[0])
 })
 
 app.put('/agendamento/:id', async (req, res) => {
     const {id} = req.params
+
     const {data_agendamento, servico, id_veiculo, id_cliente} = req.body
-    const attAgendamento = await pool.query('UPTADE agendamento SET data_agendamento = $1, servico = $2, id_veiculo = $3, id_cliente = $4 WHERE id = $5', [data_agendamento, servico, id_veiculo, id_cliente, id])
+
+    const attAgendamento = await pool.query('UPDATE agendamento SET data_agendamento = $1, servico = $2, id_veiculo = $3, id_cliente = $4 WHERE id = $5 RETURNING *', [data_agendamento, servico, id_veiculo, id_cliente, id])
+
     res.json(attAgendamento.rows[0])
 })
 
 app.delete('/agendamento/:id', async (req, res) => {
     const {id} = req.params
-    const deletarAgendamento = await pool.query('DELETE FROM agendamento WHERE id = $1', [id])
+
+    const deletarAgendamento = await pool.query('DELETE FROM agendamento WHERE id = $1 RETURNING *', [id])
+
     res.json(deletarAgendamento.rows[0])
 })
 
