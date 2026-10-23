@@ -14,21 +14,31 @@
     </nav>
 
     <h2>Agendamentos</h2>
-    <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Provident iure ad veniam explicabo reprehenderit sit! Explicabo architec
-        g elit. Provident iure ad veniam explicabo reprehenderit sit! Explicabo architec
-        g elit. Provident iure ad veniam explicabo reprehenderit sit! Explicabo architec
-        g elit. Provident iure ad veniam explicabo reprehenderit sit! Explicabo architec
-        g elit. Provident iure ad veniam explicabo reprehenderit sit! Explicabo architec
-        g elit. Provident iure ad veniam explicabo reprehenderit sit! Explicabo architec
-        g elit. Provident iure ad veniam explicabo reprehenderit sit! Explicabo architec
-        g elit. Provident iure ad veniam explicabo reprehenderit sit! Explicabo architec
-        g elit. Provident iure ad veniam explicabo reprehenderit sit! Explicabo architec
-        g elit. Provident iure ad veniam explicabo reprehenderit sit! Explicabo architec
-        g elit. Provident iure ad veniam explicabo reprehenderit sit! Explicabo architec
-        g elit. Provident iure ad veniam explicabo reprehenderit sit! Explicabo architec
-        g elit. Provident iure ad veniam explicabo reprehenderit sit! Explicabo architec
-        g elit. Provident iure ad veniam explicabo reprehenderit sit! Explicabo architec
-        
-        to, ipsam blanditiis natus itaque, temporibus dolor hic ratione aperiam doloremque modi, saepe sed.</p>
+
+    <form id="">
+        <input type="hidden" id="id">
+        <input type="date" id="data_agendamento">
+        <input id="servico" placeholder="Serviço" required>
+        <select id="id_veiculo"></select>
+        <select id="id_cliente"></select>
+        <button>Salvar</button>
+    </form>
+
+    <table>
+        <thead>
+            <th>
+                <tr>Data</tr>
+                <tr>Serviço</tr>
+                <tr>Cliente</tr>
+                <tr>Placa</tr>
+                <tr>Modelo</tr>
+                <tr>Ações</tr>
+            </th>
+            <tbody id="tabela"></tbody>
+        </thead>
+    </table>
+
+    <script src="js/agendamento.js"></script>
+    <script src="js/funcoes.js"></script>
 </body>
 </html>
