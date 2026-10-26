@@ -16,5 +16,28 @@
 
     <h2>Veículos</h2>
     
+    <form id="formulario">
+        <input type="hidden" id="id">
+        <input id="placa" placeholder="Placa" required>
+        <input id="modelo" placeholder="Modelo" required>
+        <input id="ano" type="number" placeholder="Ano" required>
+        <select id="id_cliente" required></select>
+        <button>Salvar</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Placa</th>
+                <th>Modelo</th>
+                <th>Ano</th>
+                <th>Cliente</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="tabela"></tbody>
+    </table>
+    <script src="js/funcoes.js"></script>
+    <script src="js/veiculo.js"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 document.getElementById('formularioDeLogin').onsubmit = async (evento) => {
     evento.preventDefault()
 
-    const usuarioLogado = await chamandoServer('http://localhost:3000/login', 'POST', {
+    const usuarioLogado = await chamandoServer('/login', 'POST', {
         login: document.getElementById('login').value,
         senha: document.getElementById('senha').value,
     })

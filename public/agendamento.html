@@ -16,13 +16,13 @@
 
     <h2>Agendamentos</h2>
 
-    <form id="">
+    <form id="formulario">
         <input type="hidden" id="id">
-        <input type="date" id="data_agendamento">
+        <input type="date" id="data_agendamento" required>
         <input id="servico" placeholder="Serviço" required>
-        <select id="id_veiculo"></select>
-        <select id="id_cliente"></select>
+        <select id="id_veiculo" required></select>
         <button>Salvar</button>
+        <button type="button" onclick="limparFormularioDeAgendamento()">Limpar</button>
     </form>
 
     <table>
@@ -35,13 +35,11 @@
                 <th>Modelo</th>
                 <th>Ações</th>
             </tr>
-            <tbody id="tabela"></tbody>
         </thead>
+        <tbody id="tabela"></tbody>
     </table>
 
-    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum a minus fuga adipisci, voluptatum enim temporibus error sapiente tempora maxime fugiat ex doloremque molestias vitae. Molestias adipisci tenetur tempore distinctio.
-    </p>
-
-    <script src="js/agendamento.js"></script>
     <script src="js/funcoes.js"></script>
+    <script src="js/agendamento.js"></script>
 </body>
+</html>

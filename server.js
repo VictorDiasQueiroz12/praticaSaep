@@ -6,6 +6,7 @@ import bcrypt, { hash } from 'bcryptjs'
 const app = express()
 app.use(express.json())
 app.use(cors())
+app.use(express.static('public'))
 
 const PORT = 3000
 
@@ -147,13 +148,13 @@ app.get('/agendamento', async (req, res) => {
             TO_CHAR(agendamento.data_agendamento, 'YYYY-MM-DD') AS data_agendamento,
             agendamento.servico,
             agendamento.id_veiculo,
-            agendamento.id_cliente,
+            veiculo.id_cliente,
             cliente.nome AS cliente,
             veiculo.placa,
             veiculo.modelo
         FROM agendamento
         JOIN veiculo ON veiculo.id = agendamento.id_veiculo
-        JOIN cliente ON cliente.id = agendamento.id_cliente
+        JOIN cliente ON cliente.id = veiculo.id_cliente
         ORDER BY agendamento.data_agendamento
     `)
 
@@ -163,7 +164,8 @@ app.get('/agendamento', async (req, res) => {
 app.post('/agendamento', async (req, res) => {
     const {data_agendamento, servico, id_veiculo, id_cliente} = req.body
 
-    const novoAgendamento = await pool.query('INSERT INTO agendamento (data_agendamento, servico, id_veiculo, id_cliente) VALUES ($1, $2, $3, $4) RETURNING *', [data_agendamento, servico, id_veiculo, id_cliente])
+    const novoAgendamento = await pool.query('INSERT INTO agendamento (data_agendamento, servico, id_veiculo) VALUES ($1, $2, $3) RETURNING *',
+        [data_agendamento, servico, id_veiculo])
 
     res.json(novoAgendamento.rows[0])
 })
@@ -173,7 +175,8 @@ app.put('/agendamento/:id', async (req, res) => {
 
     const {data_agendamento, servico, id_veiculo, id_cliente} = req.body
 
-    const attAgendamento = await pool.query('UPDATE agendamento SET data_agendamento = $1, servico = $2, id_veiculo = $3, id_cliente = $4 WHERE id = $5 RETURNING *', [data_agendamento, servico, id_veiculo, id_cliente, id])
+    const attAgendamento = await pool.query('UPDATE agendamento SET data_agendamento = $1, servico = $2, id_veiculo = $3 WHERE id = $4 RETURNING *',
+        [data_agendamento, servico, id_veiculo, id])
 
     res.json(attAgendamento.rows[0])
 })
