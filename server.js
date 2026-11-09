@@ -2,15 +2,38 @@ import express from 'express'
 import pool from './db.js'
 import cors from 'cors'
 import bcrypt, { hash } from 'bcryptjs'
+import jwt from 'jsonwebtoken'
+import cookieParser from 'cookie-parser'
 
 const app = express()
+
+const JWT_SECRET = "senhaMuitoSecretaEdificil"
+
 app.use(express.json())
+app.use(cookieParser())
 app.use(cors())
 app.use(express.static('public'))
 
 const PORT = 3000
 
+function authToken(req, res, next){
+    const token = req.cookies.token
 
+    if(!token){
+        return res.status(401).json({
+            message: "Acesso negado."
+        })
+    }
+
+    try{
+        const userJWT = jwt.verify(token, JWT_SECRET)
+        req.userJWT = userJWT
+    }catch(error){
+        return res.status(403).json({
+            message: "Token inválido."
+        })
+    }
+}
 // ROTA LOGIN - CRIA USUARIO
 
 app.post('/registro', async (req, res) => {
@@ -53,6 +76,19 @@ app.post('/login', async (req, res) => {
         })
     }
 
+    const token = jwt.sign(
+        {id: usuario.id, email: usuario.email},
+        JWT_SECRET,
+        {expiresIn: "1h"}
+    )
+
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 60 * 60 * 60 
+    })
+
     return res.status(200).json({
         messagem: "Login realizado com sucesso.",
         user: {
@@ -63,12 +99,12 @@ app.post('/login', async (req, res) => {
 
 // ROTAS CLIENTES
 
-app.get('/cliente', async (req, res) => {
+app.get('/cliente', authToken, async (req, res) => {
     const clientes = await pool.query('SELECT id, nome, cpf, telefone FROM cliente')
     res.json(clientes.rows)
 })
 
-app.post('/cliente', async (req, res) => {
+app.post('/cliente', authToken, async (req, res) => {
     const {nome, cpf, telefone} = req.body
 
     const novoCliente = await pool.query('INSERT INTO cliente (nome, cpf, telefone) VALUES ($1, $2, $3) RETURNING *', [nome, cpf, telefone])
@@ -76,7 +112,7 @@ app.post('/cliente', async (req, res) => {
     res.json(novoCliente.rows[0])
 })
 
-app.put('/cliente/:id', async (req, res) => {
+app.put('/cliente/:id', authToken, async (req, res) => {
     const {id} = req.params
 
     const {nome, cpf, telefone} = req.body
@@ -86,7 +122,7 @@ app.put('/cliente/:id', async (req, res) => {
     res.json(attCliente.rows[0])
 })
 
-app.delete('/cliente/:id', async (req, res) => {
+app.delete('/cliente/:id', authToken, async (req, res) => {
     const {id} = req.params
 
     const deletarCliente = await pool.query('DELETE FROM cliente WHERE id = $1 RETURNING *', [id])
@@ -96,7 +132,7 @@ app.delete('/cliente/:id', async (req, res) => {
 
 // ROTAS VEICULOS
 
-app.get('/veiculo', async (req, res) => {
+app.get('/veiculo', authToken, async (req, res) => {
     const resultado = await pool.query(`
         SELECT
             veiculo.id,
@@ -113,7 +149,7 @@ app.get('/veiculo', async (req, res) => {
     res.json(resultado.rows)
 })
 
-app.post('/veiculo', async (req, res) => {
+app.post('/veiculo', authToken, async (req, res) => {
     const {placa, modelo, ano, id_cliente} = req.body
 
     const novoRegistro = await pool.query('INSERT INTO veiculo (placa, modelo, ano, id_cliente) VALUES ($1, $2, $3, $4) RETURNING *', [placa, modelo, ano, id_cliente])
@@ -121,7 +157,7 @@ app.post('/veiculo', async (req, res) => {
     res.json(novoRegistro.rows[0])
 })
 
-app.put('/veiculo/:id', async (req, res) => {
+app.put('/veiculo/:id', authToken, async (req, res) => {
     const {id} = req.params
 
     const {placa, modelo, ano, id_cliente} = req.body
@@ -131,7 +167,7 @@ app.put('/veiculo/:id', async (req, res) => {
     res.json(attRegistro.rows[0])
 })
 
-app.delete('/veiculo/:id', async (req, res) => {
+app.delete('/veiculo/:id', authToken, async (req, res) => {
     const {id} = req.params
 
     const deletarRegistro = await pool.query('DELETE FROM veiculo WHERE id = $1 RETURNING *', [id])
@@ -141,7 +177,7 @@ app.delete('/veiculo/:id', async (req, res) => {
 
 // ROTAS AGENDAMENTO
 
-app.get('/agendamento', async (req, res) => {
+app.get('/agendamento', authToken, async (req, res) => {
     const resultado = await pool.query(`
         SELECT
             agendamento.id,
@@ -161,7 +197,7 @@ app.get('/agendamento', async (req, res) => {
     res.json(resultado.rows)
 })
 
-app.post('/agendamento', async (req, res) => {
+app.post('/agendamento', authToken, async (req, res) => {
     const {data_agendamento, servico, id_veiculo, id_cliente} = req.body
 
     const novoAgendamento = await pool.query('INSERT INTO agendamento (data_agendamento, servico, id_veiculo) VALUES ($1, $2, $3) RETURNING *',
@@ -170,7 +206,7 @@ app.post('/agendamento', async (req, res) => {
     res.json(novoAgendamento.rows[0])
 })
 
-app.put('/agendamento/:id', async (req, res) => {
+app.put('/agendamento/:id', authToken, async (req, res) => {
     const {id} = req.params
 
     const {data_agendamento, servico, id_veiculo, id_cliente} = req.body
@@ -181,7 +217,7 @@ app.put('/agendamento/:id', async (req, res) => {
     res.json(attAgendamento.rows[0])
 })
 
-app.delete('/agendamento/:id', async (req, res) => {
+app.delete('/agendamento/:id', authToken, async (req, res) => {
     const {id} = req.params
 
     const deletarAgendamento = await pool.query('DELETE FROM agendamento WHERE id = $1 RETURNING *', [id])
