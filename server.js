@@ -12,6 +12,10 @@ const JWT_SECRET = "senhaMuitoSecretaEdificil"
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors())
+app.get('/', (req, res) => {
+    res.redirect('/login.html')
+})
+
 app.use(express.static('public'))
 
 const PORT = 3000
@@ -28,6 +32,7 @@ function authToken(req, res, next){
     try{
         const userJWT = jwt.verify(token, JWT_SECRET)
         req.userJWT = userJWT
+        next()
     }catch(error){
         return res.status(403).json({
             message: "Token inválido."
@@ -227,5 +232,5 @@ app.delete('/agendamento/:id', authToken, async (req, res) => {
 
 
 app.listen(PORT, () =>{
-    console.log("Rodando na porta: ", PORT)
+    console.log(`Servidor rodando em http://localhost:${PORT}`)
 })
