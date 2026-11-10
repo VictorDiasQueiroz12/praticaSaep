@@ -1,7 +1,7 @@
 import express from 'express'
 import pool from './db.js'
 import cors from 'cors'
-import bcrypt, { hash } from 'bcryptjs'
+import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import cookieParser from 'cookie-parser'
 
@@ -112,17 +112,22 @@ app.get('/cliente', authToken, async (req, res) => {
 app.post('/cliente', authToken, async (req, res) => {
     const {nome, cpf, telefone} = req.body
 
-    const novoCliente = await pool.query('INSERT INTO cliente (nome, cpf, telefone) VALUES ($1, $2, $3) RETURNING *', [nome, cpf, telefone])
+    const cpfHash = await bcrypt.hash(cpf, 10)
+    const telefoneHash = await bcrypt.hash(telefone, 10)
 
-    res.json(novoCliente.rows[0])
+    const novoCliente = await pool.query('INSERT INTO cliente (nome, cpf, telefone) VALUES ($1, $2, $3) RETURNING *', [nome, cpfHash, telefoneHash])
+
+    res.status(201).json(novoCliente.rows[0])
 })
 
 app.put('/cliente/:id', authToken, async (req, res) => {
     const {id} = req.params
-
     const {nome, cpf, telefone} = req.body
 
-    const attCliente = await pool.query('UPDATE cliente SET nome = $1, cpf = $2, telefone = $3 WHERE id = $4 RETURNING *', [nome, cpf, telefone, id])
+    const cpfHash = await bcrypt.hash(cpf, 10)
+    const telefoneHash = await bcrypt.hash(telefone, 10)
+
+    const attCliente = await pool.query('UPDATE cliente SET nome = $1, cpf = $2, telefone = $3 WHERE id = $4 RETURNING *', [nome, cpfHash, telefoneHash, id])
 
     res.json(attCliente.rows[0])
 })

@@ -1,3 +1,4 @@
+-- Os dados de exemplo usam a chave DATA_ENCRYPTION_KEY do .env local. Preserve essa chave.
 create table if not exists usuario(
 id serial primary key,
 nome varchar(100) not null,
@@ -8,8 +9,8 @@ senha text not null
 create table if not exists cliente(
 id serial primary key,
 nome varchar(100) not null,
-cpf varchar(100) not null,
-telefone varchar(100) not null
+cpf text not null,
+telefone text not null
 );
 
 create table if not exists veiculo(
@@ -40,9 +41,9 @@ ON CONFLICT (login) DO NOTHING;
 
 -- CLIENTES
 INSERT INTO cliente (nome, cpf, telefone) VALUES
-('Carlos Souza', '12345678901', '48999991111'),
-('Ana Pereira', '98765432100', '48988882222'),
-('Lucas Ferreira', '45678912300', '48977773333');
+('Carlos Souza', 'enc:v1:hhjFMmUVWjpzSAD49IWIpjkdKF4LLnc64Szwbt4XYkBLAXOcSemj', 'enc:v1:VLgg/L6Y0iaOCgCN5k5ET9AwbCW8XxrekfLmAbpn8yTl5WChrtkQ'),
+('Ana Pereira', 'enc:v1:dz91WucXfE27K5zMJQqjpDmoyXKrqP95OlFi52wfEnKiyiPTBFjk', 'enc:v1:A+7mZdi9f9tu5bvqhqYS0zgkNH6+ojAR8Ide3TGYAGw6vmSrmHfn'),
+('Lucas Ferreira', 'enc:v1:VqewdDcRXctp5YkRtWTEz6VBptsnDpbozvf5Y2KMpNTDsjNaVQrV', 'enc:v1:/4WImA1jGJv7dELp8Rt2L/zB1Um0Izks0X217ziqCGmzk3jx/aiJ');
 
 
 -- VEICULOS
